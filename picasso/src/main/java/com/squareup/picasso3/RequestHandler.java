@@ -15,12 +15,16 @@
  */
 package com.squareup.picasso3;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.TypedValue;
 import java.io.IOException;
 import java.io.InputStream;
 import okio.BufferedSource;
@@ -63,24 +67,52 @@ public abstract class RequestHandler {
   public static final class Result {
     private final Picasso.LoadedFrom loadedFrom;
     private final Bitmap bitmap;
+    private final Drawable drawable;
     private final int exifOrientation;
 
     public Result(@NonNull Bitmap bitmap, @NonNull Picasso.LoadedFrom loadedFrom) {
-      this(checkNotNull(bitmap, "bitmap == null"), loadedFrom, 0);
+      this(checkNotNull(bitmap, "bitmap == null"), null, loadedFrom, 0);
     }
 
-    Result(
+    public Result(@NonNull Bitmap bitmap, @NonNull Picasso.LoadedFrom loadedFrom,
+        int exifOrientation) {
+      this(checkNotNull(bitmap, "bitmap == null"), null, loadedFrom, exifOrientation);
+    }
+
+    public Result(@NonNull Drawable drawable, @NonNull Picasso.LoadedFrom loadedFrom) {
+      this(null, checkNotNull(drawable, "drawable == null"), loadedFrom, 0);
+    }
+
+    public Result(@NonNull Drawable drawable, @NonNull Picasso.LoadedFrom loadedFrom,
+        int exifOrientation) {
+      this(null, checkNotNull(drawable, "drawable == null"), loadedFrom, exifOrientation);
+    }
+
+    private Result(
         @Nullable Bitmap bitmap,
+        @Nullable Drawable drawable,
         @NonNull Picasso.LoadedFrom loadedFrom,
         int exifOrientation) {
       this.bitmap = bitmap;
+      this.drawable = drawable;
       this.loadedFrom = checkNotNull(loadedFrom, "loadedFrom == null");
       this.exifOrientation = exifOrientation;
     }
 
-    /** The loaded {@link Bitmap}. */
+    /**
+     * The loaded {@link Bitmap}.
+     * Mutually exclusive with {@link #getDrawable()}.
+     */
     @Nullable public Bitmap getBitmap() {
       return bitmap;
+    }
+
+    /**
+     * The loaded {@link Drawable}.
+     * Mutually exclusive with {@link #getBitmap()}.
+     */
+    @Nullable public Drawable getDrawable() {
+      return drawable;
     }
 
     /**
@@ -259,5 +291,12 @@ public abstract class RequestHandler {
       }
     }
     return bitmap;
+  }
+
+  static boolean isXmlResource(Resources resources, @DrawableRes int drawableId) {
+    TypedValue typedValue = new TypedValue();
+    resources.getValue(drawableId, typedValue, true);
+    CharSequence file = typedValue.string;
+    return file != null && file.toString().endsWith(".xml");
   }
 }

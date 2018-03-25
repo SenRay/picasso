@@ -31,11 +31,8 @@ class ResourceRequestHandler extends RequestHandler {
   }
 
   @Override public boolean canHandleRequest(Request data) {
-    if (data.resourceId != 0) {
-      return true;
-    }
-
-    return SCHEME_ANDROID_RESOURCE.equals(data.uri.getScheme());
+    return data.resourceId != 0 && !isXmlResource(context.getResources(), data.resourceId)
+        || SCHEME_ANDROID_RESOURCE.equals(data.uri.getScheme());
   }
 
   @Override public void load(Picasso picasso, Request request,

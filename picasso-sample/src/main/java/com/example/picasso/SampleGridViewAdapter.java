@@ -56,7 +56,7 @@ final class SampleGridViewAdapter extends BaseAdapter {
   }
 
   @Override public Integer getItem(int position) {
-    return R.drawable.vector;
+    return position % 2 == 0 ? R.drawable.icon : R.drawable.vector;
   }
 
   @Override public long getItemId(int position) {
