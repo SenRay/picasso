@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static android.widget.ImageView.ScaleType.CENTER_CROP;
+import static com.example.picasso.Data.URLS;
 
 final class SampleGridViewAdapter extends BaseAdapter {
   private final Context context;
@@ -19,7 +20,7 @@ final class SampleGridViewAdapter extends BaseAdapter {
     this.context = context;
 
     // Ensure we get a different ordering of images on each run.
-    Collections.addAll(urls, Data.URLS);
+    Collections.addAll(urls, URLS);
     Collections.shuffle(urls);
 
     // Triple up the list.
@@ -36,11 +37,11 @@ final class SampleGridViewAdapter extends BaseAdapter {
     }
 
     // Get the image URL for the current position.
-    String url = getItem(position);
+    int resourceId = getItem(position);
 
     // Trigger the download of the URL asynchronously into the image view.
     PicassoProvider.get() //
-        .load(url) //
+        .load(resourceId) //
         .placeholder(R.drawable.placeholder) //
         .error(R.drawable.error) //
         .fit() //
@@ -51,11 +52,11 @@ final class SampleGridViewAdapter extends BaseAdapter {
   }
 
   @Override public int getCount() {
-    return urls.size();
+    return URLS.length;
   }
 
-  @Override public String getItem(int position) {
-    return urls.get(position);
+  @Override public Integer getItem(int position) {
+    return R.drawable.vector;
   }
 
   @Override public long getItemId(int position) {
