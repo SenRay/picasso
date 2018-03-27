@@ -27,7 +27,13 @@ import okio.BufferedSource;
 import okio.Okio;
 import okio.Source;
 
+import static com.squareup.picasso3.BitmapHunter.applyCustomTransformations;
+import static com.squareup.picasso3.BitmapHunter.transformResult;
+import static com.squareup.picasso3.Utils.OWNER_HUNTER;
+import static com.squareup.picasso3.Utils.VERB_DECODED;
+import static com.squareup.picasso3.Utils.VERB_TRANSFORMED;
 import static com.squareup.picasso3.Utils.checkNotNull;
+import static com.squareup.picasso3.Utils.log;
 
 /**
  * {@code RequestHandler} allows you to extend Picasso to load images in ways that are not
@@ -216,5 +222,42 @@ public abstract class RequestHandler {
       }
       return bitmap;
     }
+  }
+
+  /**
+   * Global lock for bitmap decoding to ensure that we are only decoding one at a time. Since
+   * this will only ever happen in background threads we help avoid excessive memory thrashing as
+   * well as potential OOMs. Shamelessly stolen from Volley.
+   */
+  private static final Object DECODE_LOCK = new Object();
+
+  Bitmap transform(Picasso picasso, Request request, int exifOrientation, Bitmap bitmap) {
+    if (bitmap != null) {
+      if (picasso.loggingEnabled) {
+        log(OWNER_HUNTER, VERB_DECODED, request.logId());
+      }
+      picasso.stats.dispatchBitmapDecoded(bitmap);
+      if (request.needsTransformation() || exifOrientation != 0) {
+        synchronized (DECODE_LOCK) {
+          if (request.needsMatrixTransform() || exifOrientation != 0) {
+            bitmap = transformResult(request, bitmap, exifOrientation);
+            if (picasso.loggingEnabled) {
+              log(OWNER_HUNTER, VERB_TRANSFORMED, request.logId());
+            }
+          }
+          if (request.hasCustomTransformations()) {
+            bitmap = applyCustomTransformations(request.transformations, bitmap);
+            if (picasso.loggingEnabled) {
+              log(OWNER_HUNTER, VERB_TRANSFORMED, request.logId(),
+                  "from custom transformations");
+            }
+          }
+        }
+        if (bitmap != null) {
+          picasso.stats.dispatchBitmapTransformed(bitmap);
+        }
+      }
+    }
+    return bitmap;
   }
 }

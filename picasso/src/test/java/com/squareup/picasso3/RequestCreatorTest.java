@@ -203,7 +203,7 @@ public class RequestCreatorTest {
     when(picasso.quickMemoryCacheCheck(URI_KEY_1)).thenReturn(bitmap);
     Target target = mockTarget();
     new RequestCreator(picasso, URI_1, 0).into(target);
-    verify(target).onBitmapLoaded(bitmap, MEMORY);
+    verify(target).onLoaded(bitmap, MEMORY);
     verify(picasso).cancelRequest(target);
     verify(picasso, never()).enqueueAndSubmit(any(Action.class));
   }

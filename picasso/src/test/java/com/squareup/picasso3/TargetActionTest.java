@@ -54,7 +54,7 @@ public class TargetActionTest {
     TargetAction request =
         new TargetAction(mock(Picasso.class), target, null, 0, 0, null, URI_KEY_1, null, 0);
     request.complete(bitmap, MEMORY);
-    verify(target).onBitmapLoaded(bitmap, MEMORY);
+    verify(target).onLoaded(bitmap, MEMORY);
   }
 
   @Test
@@ -92,8 +92,8 @@ public class TargetActionTest {
 
   @Test public void recyclingInSuccessThrowsException() {
     Target bad = new Target() {
-      @Override public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-        bitmap.recycle();
+      @Override public void onLoaded(Bitmap result, Picasso.LoadedFrom from) {
+        result.recycle();
       }
 
       @Override public void onBitmapFailed(Exception e, Drawable errorDrawable) {

@@ -517,7 +517,7 @@ public class Picasso {
 
     Uri uri = hunter.getData().uri;
     Exception exception = hunter.getException();
-    Bitmap result = hunter.getResult();
+    RequestHandler.Result result = hunter.getResult();
     LoadedFrom from = hunter.getLoadedFrom();
 
     if (single != null) {
@@ -558,7 +558,7 @@ public class Picasso {
     }
   }
 
-  private void deliverAction(Bitmap result, LoadedFrom from, Action action, Exception e) {
+  private void deliverAction(RequestHandler.Result result, LoadedFrom from, Action action, Exception e) {
     if (action.isCancelled()) {
       return;
     }

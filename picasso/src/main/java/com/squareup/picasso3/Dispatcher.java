@@ -350,7 +350,8 @@ class Dispatcher {
 
   void performComplete(BitmapHunter hunter) {
     if (shouldWriteToMemoryCache(hunter.getMemoryPolicy())) {
-      cache.set(hunter.getKey(), hunter.getResult());
+      RequestHandler.Result result = hunter.getResult();
+      cache.set(hunter.getKey(), result.getBitmap());
     }
     hunterMap.remove(hunter.getKey());
     batch(hunter);
@@ -427,8 +428,9 @@ class Dispatcher {
     if (hunter.isCancelled()) {
       return;
     }
-    if (hunter.result != null) {
-      hunter.result.prepareToDraw();
+    RequestHandler.Result result = hunter.result;
+    if (result != null) {
+      result.getBitmap().prepareToDraw();
     }
     batch.add(hunter);
     if (!handler.hasMessages(HUNTER_DELAY_NEXT_BATCH)) {

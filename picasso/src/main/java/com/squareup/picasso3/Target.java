@@ -36,7 +36,7 @@ public interface Target {
    * <p>
    * <strong>Note:</strong> You must not recycle the bitmap.
    */
-  void onBitmapLoaded(Bitmap bitmap, LoadedFrom from);
+  void onLoaded(Bitmap result, LoadedFrom from);
 
   /**
    * Callback indicating the image could not be successfully loaded.

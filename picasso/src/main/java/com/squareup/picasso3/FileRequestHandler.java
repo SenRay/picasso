@@ -42,9 +42,10 @@ class FileRequestHandler extends ContentStreamRequestHandler {
     boolean signaledCallback = false;
     try {
       Source source = getSource(request);
-      Bitmap bitmap = decodeStream(source, request);
+      int exifRotation = getFileExifRotation(request.uri);
+      Bitmap bitmap = transform(picasso, request, exifRotation, decodeStream(source, request));
       signaledCallback = true;
-      callback.onSuccess(new Result(bitmap, DISK, getFileExifRotation(request.uri)));
+      callback.onSuccess(new Result(bitmap, DISK, exifRotation));
     } catch (Exception e) {
       if (!signaledCallback) {
         callback.onError(e);

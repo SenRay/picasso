@@ -48,18 +48,10 @@ import static com.squareup.picasso3.Utils.VERB_DECODED;
 import static com.squareup.picasso3.Utils.VERB_EXECUTING;
 import static com.squareup.picasso3.Utils.VERB_JOINED;
 import static com.squareup.picasso3.Utils.VERB_REMOVED;
-import static com.squareup.picasso3.Utils.VERB_TRANSFORMED;
 import static com.squareup.picasso3.Utils.getLogIdsForHunter;
 import static com.squareup.picasso3.Utils.log;
 
 class BitmapHunter implements Runnable {
-  /**
-   * Global lock for bitmap decoding to ensure that we are only decoding one at a time. Since
-   * this will only ever happen in background threads we help avoid excessive memory thrashing as
-   * well as potential OOMs. Shamelessly stolen from Volley.
-   */
-  private static final Object DECODE_LOCK = new Object();
-
   private static final ThreadLocal<StringBuilder> NAME_BUILDER = new ThreadLocal<StringBuilder>() {
     @Override protected StringBuilder initialValue() {
       return new StringBuilder(Utils.THREAD_PREFIX);
@@ -92,7 +84,7 @@ class BitmapHunter implements Runnable {
 
   Action action;
   List<Action> actions;
-  Bitmap result;
+  Result result;
   Future<?> future;
   Picasso.LoadedFrom loadedFrom;
   Exception exception;
@@ -153,18 +145,16 @@ class BitmapHunter implements Runnable {
     }
   }
 
-  Bitmap hunt() throws IOException {
-    Bitmap bitmap = null;
-
+  Result hunt() throws IOException {
     if (shouldReadFromMemoryCache(memoryPolicy)) {
-      bitmap = cache.get(key);
+      Bitmap bitmap = cache.get(key);
       if (bitmap != null) {
         stats.dispatchCacheHit();
         loadedFrom = MEMORY;
         if (picasso.loggingEnabled) {
           log(OWNER_HUNTER, VERB_DECODED, data.logId(), "from cache");
         }
-        return bitmap;
+        return new Result(bitmap, MEMORY);
       }
     }
 
@@ -202,44 +192,10 @@ class BitmapHunter implements Runnable {
         throw new RuntimeException(throwable);
       }
 
-      Result result = resultReference.get();
-      if (result != null) {
-        loadedFrom = result.getLoadedFrom();
-        exifOrientation = result.getExifOrientation();
-        bitmap = result.getBitmap();
-      }
-
-      if (bitmap != null) {
-        if (picasso.loggingEnabled) {
-          log(OWNER_HUNTER, VERB_DECODED, data.logId());
-        }
-        stats.dispatchBitmapDecoded(bitmap);
-        if (data.needsTransformation() || exifOrientation != 0) {
-          synchronized (DECODE_LOCK) {
-            if (data.needsMatrixTransform() || exifOrientation != 0) {
-              bitmap = transformResult(data, bitmap, exifOrientation);
-              if (picasso.loggingEnabled) {
-                log(OWNER_HUNTER, VERB_TRANSFORMED, data.logId());
-              }
-            }
-            if (data.hasCustomTransformations()) {
-              bitmap = applyCustomTransformations(data.transformations, bitmap);
-              if (picasso.loggingEnabled) {
-                log(OWNER_HUNTER, VERB_TRANSFORMED, data.logId(),
-                    "from custom transformations");
-              }
-            }
-          }
-          if (bitmap != null) {
-            stats.dispatchBitmapTransformed(bitmap);
-          }
-        }
-      }
+      return resultReference.get();
     } catch (InterruptedException ie) {
       throw new InterruptedIOException(ie.getMessage());
     }
-
-    return bitmap;
   }
 
   void attach(Action action) {
@@ -346,7 +302,7 @@ class BitmapHunter implements Runnable {
     return requestHandler.supportsReplay();
   }
 
-  Bitmap getResult() {
+  Result getResult() {
     return result;
   }
 
