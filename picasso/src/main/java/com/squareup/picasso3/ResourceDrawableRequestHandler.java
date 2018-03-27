@@ -19,7 +19,8 @@ public class ResourceDrawableRequestHandler extends RequestHandler {
     return data.resourceId != 0 && isXmlResource(context.getResources(), data.resourceId);
   }
 
-  @Override public void load(Request request, int networkPolicy, Callback callback) {
+  @Override
+  public void load(Picasso picasso, Request request, int networkPolicy, Callback callback) {
     Drawable drawable = loader.load(request.resourceId);
     if (drawable == null) {
       callback.onError(new IllegalArgumentException(

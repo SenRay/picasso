@@ -715,7 +715,8 @@ public class RequestCreator {
       Bitmap bitmap = picasso.quickMemoryCacheCheck(requestKey);
       if (bitmap != null) {
         picasso.cancelRequest(target);
-        setResult(target, picasso.context, bitmap, MEMORY, noFade, picasso.indicatorsEnabled);
+        RequestHandler.Result result = new RequestHandler.Result(bitmap, MEMORY);
+        setResult(target, picasso.context, result, MEMORY, noFade, picasso.indicatorsEnabled);
         if (picasso.loggingEnabled) {
           log(OWNER_MAIN, VERB_COMPLETED, request.plainId(), "from " + MEMORY);
         }
@@ -774,7 +775,7 @@ public class RequestCreator {
     if (shouldReadFromMemoryCache(memoryPolicy)) {
       Bitmap bitmap = picasso.quickMemoryCacheCheck(action.getKey());
       if (bitmap != null) {
-        action.complete(bitmap, MEMORY);
+        action.complete(new RequestHandler.Result(bitmap, MEMORY), MEMORY);
         return;
       }
     }
